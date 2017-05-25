@@ -5,7 +5,10 @@
   {mod, { lasso_app, []}},
   {applications,
    [kernel,
-    stdlib
+    stdlib,
+    sasl,
+    cowboy,
+    gun
    ]},
   {env,[]},
   {modules, []},
