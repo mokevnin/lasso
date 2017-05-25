@@ -6,23 +6,40 @@ lasso_test_() ->
   {foreach,
    fun start/0,
    fun stop/1,
-   [fun check_length/1]
+   [
+    fun check_get/1,
+    fun check_post/1
+   ]
   }.
 
 start() ->
+  Port = 8080,
+  ListenerName = my_http_listener,
   application:ensure_all_started(lasso),
   Dispatch = cowboy_router:compile([
-                                    {'_', [{"/", hello_handler, []}]}
+                                    {'_', [
+                                           {"/", hello_handler, []},
+                                           {"/echo", post_handler, []}
+                                          ]}
                                    ]),
-  {ok, _} = cowboy:start_clear(my_http_listener, 5,
-                               [{port, 8080}],
+  {ok, _} = cowboy:start_clear(ListenerName, 5,
+                               [{port, Port}],
                                #{env => #{dispatch => Dispatch}}
-                              ).
+                              ),
+  ConnPid = lasso:open(#{port => Port, protocol => http, transport => tcp}),
+  #{ conn => ConnPid, listener_name => ListenerName }.
 
-stop(_) -> ok.
+stop(#{ conn := ConnPid, listener_name := ListenerName }) ->
+  lasso:close(ConnPid),
+  cowboy:stop_listener(ListenerName),
+  ok.
 
 
-check_length(_) ->
-  ConnPid = lasso:open(#{port => 8080, protocol => http, transport => tcp}),
+check_get(#{ conn := ConnPid }) ->
   {_, _, Body} = lasso:get(ConnPid, "/"),
   [?_assertEqual(<<"Hello Erlang!">>, Body)].
+
+check_post(#{ conn := ConnPid }) ->
+  RequestBody = <<"{\"msg\": \"Hello world!\"}">>,
+  {_, _, Body} = lasso:post(ConnPid, "/echo", [{<<"content-type">>, "application/json"}], RequestBody),
+  [?_assertEqual(RequestBody, Body)].
