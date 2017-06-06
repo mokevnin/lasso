@@ -19,12 +19,12 @@ get(ConnPid, Path) ->
 
 get(ConnPid, Path, RequestHeaders) ->
   Ref = gun:get(ConnPid, Path, RequestHeaders),
-  {response, InFin, Status, Headers} = gun:await(ConnPid, Ref),
+  {response, _, Status, Headers} = gun:await(ConnPid, Ref),
   {ok, Body} = gun:await_body(ConnPid, Ref),
   {Status, Headers, Body}.
 
 post(ConnPid, Path, RequestHeaders, RequestBody) ->
   Ref = gun:post(ConnPid, Path, RequestHeaders, RequestBody),
-  {response, InFin, Status, Headers} = gun:await(ConnPid, Ref),
+  {response, _, Status, Headers} = gun:await(ConnPid, Ref),
   {ok, Body} = gun:await_body(ConnPid, Ref),
   {Status, Headers, Body}.
