@@ -1,6 +1,6 @@
 {"1.1.0",
 [{<<"cowboy">>,
-  {git,"git@github.com:ninenines/cowboy.git",
+  {git,"https://github.com/ninenines/cowboy.git",
        {ref,"8cb125dbb7c410cab862aac5a582e5dfa0e46772"}},
   0},
  {<<"cowlib">>,

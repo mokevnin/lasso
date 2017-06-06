@@ -1,12 +1,15 @@
+REBAR=./bin/rebar3
+
 install:
-	bin/rebar3 get-deps
+	@$(REBAR) get-deps
 
 compile:
-	bin/rebar3 compile
+	@$(REBAR) compile
 
 release:
-	bin/rebar3 release
+	@$(REBAR) release
+
 test:
-	bin/rebar3 eunit
+	@$(REBAR) eunit
 
 .PHONY: test
