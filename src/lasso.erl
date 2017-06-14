@@ -1,9 +1,9 @@
 -module(lasso).
 
--export([open/4, close/1, get/2, get/3, post/4]).
+-export([open/2, close/1, get/2, get/3, post/4]).
 
-open(Transport, Host, Port, Options) ->
-  {ok, ConnPid} = hackney:connect(Transport, Host, Port, Options),
+open(Port, Options) ->
+  {ok, ConnPid} = hackney:connect(hackney_tcp, <<"localhost">>, Port, Options),
   ConnPid.
 
 close(ConnPid) ->

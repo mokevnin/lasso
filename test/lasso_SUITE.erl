@@ -20,8 +20,7 @@ init_per_testcase(_, Config) ->
                                [{port, Port}],
                                [{env, [{dispatch, Dispatch}]}]
                               ),
-  % ConnPid = lasso:open(#{port => Port, protocol => http, transport => tcp}),
-  ConnPid = lasso:open(hackney_tcp, <<"localhost">>, Port, []),
+  ConnPid = lasso:open(Port, []),
   Config2 = [{listener_name, ListenerName} | Config],
   [{conn, ConnPid} | Config2].
 
