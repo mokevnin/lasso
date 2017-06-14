@@ -3,7 +3,7 @@
 -export([check_get/1, check_post/1]).
 -export([all/0, init_per_testcase/2, end_per_testcase/2]).
 
-all() -> [check_get].
+all() -> [check_get, check_post].
 
 init_per_testcase(_, Config) ->
   Port = 8080,
@@ -39,5 +39,5 @@ check_get(Config) ->
 check_post(Config) ->
   ConnPid = ?config(conn, Config),
   RequestBody = <<"{\"msg\": \"Hello world!\"}">>,
-  {_, _, Body} = lasso:post(ConnPid, "/echo", [{<<"content-type">>, "application/json"}], RequestBody),
+  {_, _, Body} = lasso:post(ConnPid, <<"/echo">>, [{<<"content-type">>, <<"application/json">>}], RequestBody),
   RequestBody = Body.
