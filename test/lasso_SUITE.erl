@@ -9,7 +9,6 @@ init_per_testcase(_, Config) ->
   Port = 8080,
   ListenerName = my_http_listener,
   application:ensure_all_started(lasso),
-  application:ensure_all_started(hankey),
   Dispatch = cowboy_router:compile([
                                     {'_', [
                                            {"/", hello_handler, []},

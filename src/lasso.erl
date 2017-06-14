@@ -3,7 +3,7 @@
 -export([open/2, close/1, get/2, get/3, post/4]).
 
 open(Port, Options) ->
-  {ok, ConnPid} = hackney:connect(hackney_tcp, <<"localhost">>, Port, Options),
+  {ok, ConnPid} = hackney:connect(hackney_tcp_transport, <<"localhost">>, Port, Options),
   ConnPid.
 
 close(ConnPid) ->
