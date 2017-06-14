@@ -3,12 +3,13 @@
 -export([check_get/1, check_post/1]).
 -export([all/0, init_per_testcase/2, end_per_testcase/2]).
 
-all() -> [check_get, check_post].
+all() -> [check_get].
 
 init_per_testcase(_, Config) ->
   Port = 8080,
   ListenerName = my_http_listener,
   application:ensure_all_started(lasso),
+  application:ensure_all_started(hankey),
   Dispatch = cowboy_router:compile([
                                     {'_', [
                                            {"/", hello_handler, []},
@@ -19,7 +20,8 @@ init_per_testcase(_, Config) ->
                                [{port, Port}],
                                [{env, [{dispatch, Dispatch}]}]
                               ),
-  ConnPid = lasso:open(#{port => Port, protocol => http, transport => tcp}),
+  % ConnPid = lasso:open(#{port => Port, protocol => http, transport => tcp}),
+  ConnPid = lasso:open(hackney_tcp, <<"localhost">>, Port, []),
   Config2 = [{listener_name, ListenerName} | Config],
   [{conn, ConnPid} | Config2].
 
@@ -31,7 +33,7 @@ end_per_testcase(_, Config) ->
 
 check_get(Config) ->
   ConnPid = ?config(conn, Config),
-  {_, _, Body} = lasso:get(ConnPid, "/"),
+  {_, _, Body} = lasso:get(ConnPid, <<"/">>),
   Body = <<"Hello Erlang!">>.
 
 check_post(Config) ->
