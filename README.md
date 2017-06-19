@@ -1,53 +1,49 @@
 # lasso
 
-[![Build Status](https://travis-ci.org/mokevnin/lasso.svg?branch=master)](https://travis-ci.org/mokevnin/lasso)
-
 # Using
 
 ```erlang
--module(my_tests).
+-module(my_SUITE).
+-include_lib("common_test/include/ct.hrl").
+-export([check_get/1, check_post/1]).
+-export([all/0, init_per_testcase/2, end_per_testcase/2]).
 
--include_lib("eunit/include/eunit.hrl").
+all() -> [check_get, check_post].
 
-my_test_() ->
-  {foreach,
-   fun start/0,
-   fun stop/1,
-   [
-    fun check_get/1,
-    fun check_post/1
-   ]
-  }.
-
-start() ->
+init_per_testcase(_, Config) ->
   Port = 8080,
   ListenerName = my_http_listener,
   application:ensure_all_started(lasso),
+  application:ensure_all_started(hankey),
   Dispatch = cowboy_router:compile([
                                     {'_', [
                                            {"/", hello_handler, []},
                                            {"/echo", post_handler, []}
                                           ]}
                                    ]),
-  {ok, _} = cowboy:start_clear(ListenerName, 5,
+  {ok, _} = cowboy:start_http(ListenerName, 5,
                                [{port, Port}],
-                               #{env => #{dispatch => Dispatch}}
+                               [{env, [{dispatch, Dispatch}]}]
                               ),
-  ConnPid = lasso:open(#{port => Port, protocol => http, transport => tcp}),
-  #{ conn => ConnPid, listener_name => ListenerName }.
+  ConnPid = lasso:open(Port, []),
+  Config2 = [{listener_name, ListenerName} | Config],
+  [{conn, ConnPid} | Config2].
 
-stop(#{ conn := ConnPid, listener_name := ListenerName }) ->
+end_per_testcase(_, Config) ->
+  ConnPid = ?config(conn, Config),
   lasso:close(ConnPid),
-  cowboy:stop_listener(ListenerName),
+  cowboy:stop_listener(?config(listener_name, Config)),
   ok.
 
+check_get(Config) ->
+  ConnPid = ?config(conn, Config),
+  {_, _, Body} = lasso:get(ConnPid, <<"/">>),
+  Body = <<"Hello Erlang!">>.
 
-check_get(#{ conn := ConnPid }) ->
-  {_, _, Body} = lasso:get(ConnPid, "/"),
-  [?_assertEqual(<<"Hello Erlang!">>, Body)].
-
-check_post(#{ conn := ConnPid }) ->
+check_post(Config) ->
+  ConnPid = ?config(conn, Config),
   RequestBody = <<"{\"msg\": \"Hello world!\"}">>,
-  {_, _, Body} = lasso:post(ConnPid, "/echo", [{<<"content-type">>, "application/json"}], RequestBody),
-  [?_assertEqual(RequestBody, Body)].
+  {_, _, Body} = lasso:post(ConnPid, <<"/echo">>, [{<<"content-type">>, <<"application/json">>}], RequestBody),
+  RequestBody = Body.
+ [?_assertEqual(RequestBody, Body)].
 ```

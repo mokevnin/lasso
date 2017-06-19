@@ -11,7 +11,7 @@ release:
 	rebar3 release
 
 test:
-	rebar3 eunit
+	rebar3 ct
 
 compose-bash:
 	docker-compose run lasso bash

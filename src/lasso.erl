@@ -1,30 +1,25 @@
 -module(lasso).
 
--export([open/1, close/1, get/2, get/3, post/4]).
+-export([open/2, close/1, get/2, get/3, post/4]).
 
-open(#{ port := Port, transport := Transport, protocol := Protocol }) ->
-  Opts = #{
-    retry => 0,
-    transport => Transport,
-    protocols => [Protocol]
-   },
-  {ok, ConnPid} = gun:open("localhost", Port, Opts),
+open(Port, Options) ->
+  {ok, ConnPid} = hackney:connect(hackney_tcp_transport, <<"localhost">>, Port, Options),
   ConnPid.
 
 close(ConnPid) ->
-  gun:close(ConnPid).
+  hackney:close(ConnPid).
 
 get(ConnPid, Path) ->
   get(ConnPid, Path, []).
 
-get(ConnPid, Path, RequestHeaders) ->
-  Ref = gun:get(ConnPid, Path, RequestHeaders),
-  {response, _, Status, Headers} = gun:await(ConnPid, Ref),
-  {ok, Body} = gun:await_body(ConnPid, Ref),
-  {Status, Headers, Body}.
+get(ConnPid, Path, HeadersRequest) ->
+  Request = {get, Path, HeadersRequest, <<>>},
+  {ok, StatusResponse, HeadersResponse, _} = hackney:send_request(ConnPid, Request),
+  {ok, BodyResponse} = hackney:body(ConnPid),
+  {StatusResponse, HeadersResponse, BodyResponse}.
 
-post(ConnPid, Path, RequestHeaders, RequestBody) ->
-  Ref = gun:post(ConnPid, Path, RequestHeaders, RequestBody),
-  {response, _, Status, Headers} = gun:await(ConnPid, Ref),
-  {ok, Body} = gun:await_body(ConnPid, Ref),
-  {Status, Headers, Body}.
+post(ConnPid, Path, HeadersRequest, BodyRequest) ->
+  Request = {post, Path, HeadersRequest, BodyRequest},
+  {ok, StatusResponse, HeadersResponse, _} = hackney:send_request(ConnPid, Request),
+  {ok, BodyResponse} = hackney:body(ConnPid),
+  {StatusResponse, HeadersResponse, BodyResponse}.

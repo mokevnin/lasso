@@ -8,7 +8,7 @@
     stdlib,
     sasl,
     cowboy,
-    gun
+    hackney
    ]},
   {env,[]},
   {modules, []},

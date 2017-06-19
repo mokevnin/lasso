@@ -19,7 +19,7 @@ init_per_testcase(_, Config) ->
                                [{port, Port}],
                                [{env, [{dispatch, Dispatch}]}]
                               ),
-  ConnPid = lasso:open(#{port => Port, protocol => http, transport => tcp}),
+  ConnPid = lasso:open(Port, []),
   Config2 = [{listener_name, ListenerName} | Config],
   [{conn, ConnPid} | Config2].
 
@@ -31,11 +31,11 @@ end_per_testcase(_, Config) ->
 
 check_get(Config) ->
   ConnPid = ?config(conn, Config),
-  {_, _, Body} = lasso:get(ConnPid, "/"),
+  {_, _, Body} = lasso:get(ConnPid, <<"/">>),
   Body = <<"Hello Erlang!">>.
 
 check_post(Config) ->
   ConnPid = ?config(conn, Config),
   RequestBody = <<"{\"msg\": \"Hello world!\"}">>,
-  {_, _, Body} = lasso:post(ConnPid, "/echo", [{<<"content-type">>, "application/json"}], RequestBody),
+  {_, _, Body} = lasso:post(ConnPid, <<"/echo">>, [{<<"content-type">>, <<"application/json">>}], RequestBody),
   RequestBody = Body.
